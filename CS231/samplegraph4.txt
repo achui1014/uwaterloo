@@ -1,0 +1,18 @@
+7 
+a none 7 red
+b none 9 purple
+c none 23 red
+d none 5 red
+e none 10 green
+f none 2 blue
+g none 6 blue
+a b none 15 blue
+a c none 12 red
+b c none 5 green
+c d none 1 green
+c e none 6 purple
+f c none 7 red
+e f none 3 blue
+g e none 9 green
+d g none 11 red
+g f none 4 purple
