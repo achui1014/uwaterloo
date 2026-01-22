@@ -6,7 +6,10 @@
 
 
 # *** NOTE/WARNING:
-# Because the SRS sample is randomly generated, it's possible that the numbers in this file do not correspond to the ones in the videos or the slides. Likewise, it's possible that you don't get the same numbers if you run this R code. Hence, the focus should be on the code, as opposed to the results.
+# Because the SRS sample is randomly generated, it's possible that the numbers
+# in this file do not correspond to the ones in the videos or the slides. Likewise,
+# it's possible that you don't get the same numbers if you run this R code. Hence, 
+# the focus should be on the code, as opposed to the results.
 
 
 setwd("~/Documents/Teaching/Stat332/Slides/RCode")
@@ -96,8 +99,8 @@ mu284.srs <- mu284.dat[mu284.dat$LABEL %in% mu284.srs, ]
 [1] 29.36268
 
 
-# RM85 = Revenues from the 1985 municipal taxation (in millions of kronor)     
-> ht.mean <- mean(mu284.srs$RM85)
+# RM85 = Revenues from the 1985 municipal taxation (in millions of kronor)
+
 > ht.mean
 [1] 215.94
 
