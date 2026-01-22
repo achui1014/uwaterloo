@@ -2,6 +2,31 @@ directory <- "data"
 filename <- file.path(directory, "agpop_data.csv")
 agpop <- read.csv(filename, header = TRUE, stringsAsFactors = TRUE)
 
+# Order Statistics
+# The following graphs demonstrate how the ordering of attributes can be 
+# informative
+par(mfrow = c(1, 2))
+y <- agpop$acres87[agpop$region == "NE"]
+y <- y[y != -99] # omit missing values
+
+## unordered plot
+plot(y,
+    pch = 19, col = adjustcolor("grey", alpha = 0.5),
+    xlab = "Unordered",
+    ylab = "Farming acres in 1987",
+    main = "Counties in the North East USA \n by Farming acres in 1987"
+)
+
+## ordered plot
+yrank <- rank(y, ties.method = "first") # ensure ties appear in data set order
+plot(yrank, y,
+    pch = 19, col = adjustcolor("grey", alpha = 0.5),
+    xlab = "Ordered", 
+    ylab = "Farming acres in 1987",
+    main = "Counties in the North East USA \n Ordered by Farming acres in 1987"
+)
+
+
 summary(agpop) #summary of (some) population attributes
 summary(factor(agpop$state)) # summarize one state at a time
 summary(factor(agpop$region)) # summarize one region at a time
