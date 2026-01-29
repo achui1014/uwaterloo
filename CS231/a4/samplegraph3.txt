@@ -1,0 +1,22 @@
+10 
+a none 2 purple
+b none 5 red
+c none 6 green
+d none 12 red
+e none 4 blue
+f none 6 red
+g none 9 blue
+h none 5 red
+i none 10 purple
+j none 8 green
+a b none 0 white
+b d none 0 white
+d g none 0 white
+g j none 0 white
+d f none 0 white
+f h none 0 white
+f i none 0 white
+d e none 0 white
+c d none 0 white
+c e none 0 white
+c a none 0 white
