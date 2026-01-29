@@ -1,0 +1,86 @@
+---
+title: "STAT332: Assignment 1 Question 5"
+author: "Ashley Chui (21003047)"
+output: pdf_document
+---
+
+\textbf{5.} An instructor at the University of Florida conducted a 
+small survey of the students in his introductory to statistics class. To this
+end, he selected a simple random sample of 57 students from the 250 students 
+in his class. The dataset file contains 11 variables, but this question is 
+concerned with the 3 variables given in the table below.
+
+```{r loading_data}
+library("survey")
+
+data <- read.table("classurv.txt", header = TRUE)
+
+# remove missing GPA values coded as -9
+data$GPA[data$GPA == -9] <- NA
+
+# Define the survey design
+dsgn <- svydesign(ids=~1, probs=c(57/350), fpc=rep(350, nrow(data)), data=data)
+df0 <- degf(dsgn)
+```
+
+(a) Estimate the average GPA of all students
+```{r a, echo = TRUE}
+a <- svymean(~GPA, dsgn, na.rm=TRUE)
+confint(a, df = df0)
+a
+```
+The point estimate for the average GPA of all students is 1.11 with a 95\% confidence interval $[0.0347, 2.1860]$.
+
+(b)-(c) Estimate average GPA of male/female students
+```{r b, echo = TRUE}
+b_c <- svyby(~GPA, ~gender, dsgn, svymean, na.rm = TRUE)
+confint(b_c, df = df0)
+b_c
+```
+The point estimate for the average GPA of male students is 3.049 with a 95\% confidence interval $[2.9227, 3.1756]$.\\
+The point estimate for the average GPA of female students is 2.966 with a 95\% confidence interval $[2.8316, 3.1192]$.\\
+
+(d) Estimate the proportions of male/female students
+```{r d, echo = TRUE}
+d <- svymean(~factor(gender), dsgn)
+confint(d, df = df0)
+d
+```
+The estimated proportion of male and female students is 40.35\% and 59.65\% respectively. The 95% confidence interval for 
+the male proportion is $[28.33\%, 52.37\%], while for the female proportion it is $[47.63\%, 71.67\%]$.
+
+(e) Estimate the proportions of students that are freshmen/sophomore/junior/senior/other
+```{r e, echo = TRUE}
+e_1 <- svyciprop(~I(year == 1), dsgn, method = "logit") # freshmen
+e_2 <- svyciprop(~I(year == 2), dsgn, method = "logit") # sophomore
+e_3 <- svyciprop(~I(year == 3), dsgn, method = "logit") # junior
+e_4 <- svyciprop(~I(year == 4), dsgn, method = "logit") # senior
+e_5 <- svyciprop(~I(year == 5), dsgn, method = "logit") # other
+```
+
+(f) Amongst freshmen, what are the proportions of male/female students
+```{r f, echo =TRUE}
+freshmen <- subset(dsgn, year == 1)
+f_male <- svyciprop(~I(gender == 1), freshmen, method = "logit")
+f_female <- svyciprop(~I(gender == 2), freshmen, method = "logit")
+f_male
+f_female
+```
+
+(g) Repeat (f), but for seniors
+```{r g, echo = TRUE}
+seniors <- subset(dsgn, year == 4)
+g_male <- svyciprop(~I(gender == 1), seniors, method = "logit")
+g_female <- svyciprop(~I(gender == 2), seniors, method = "logit")
+g_male
+g_female
+```
+
+(h) Amongst the top performers (i.e. GPA >= 3.2), what are the proportions of male/female students
+```{r h, echo = TRUE}
+top_perf <- subset(dsgn, GPA >= 3.2)
+h_male <- svyciprop(~I(gender == 1), top_perf, method = "logit")
+h_female <- svyciprop(~I(gender == 2), top_perf, method = "logit")
+h_male
+h_female
+```

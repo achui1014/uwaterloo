@@ -1,6 +1,6 @@
 library("survey")
 
-data <- read.table("a1/classurv.txt", header = TRUE)
+data <- read.table("classurv.txt", header = TRUE)
 
 # remove missing GPA values coded as -9
 data$GPA[data$GPA == -9] <- NA
