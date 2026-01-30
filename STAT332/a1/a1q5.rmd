@@ -52,17 +52,22 @@ the male proportion is $[28.33\%, 52.37\%], while for the female proportion it i
 (e) Estimate the proportions of students that are freshmen/sophomore/junior/senior/other
 ```{r e, echo = TRUE}
 e_1 <- svyciprop(~I(year == 1), dsgn, method = "logit") # freshmen
+e_1
 e_2 <- svyciprop(~I(year == 2), dsgn, method = "logit") # sophomore
-e_3 <- svyciprop(~I(year == 3), dsgn, method = "logit") # junior
+e_2
+e_3 <- svyciprop(~I(year == 3), dsgn, method = "mean") # junior
+e_3
 e_4 <- svyciprop(~I(year == 4), dsgn, method = "logit") # senior
+e_4
 e_5 <- svyciprop(~I(year == 5), dsgn, method = "logit") # other
+e_5
 ```
 
 (f) Amongst freshmen, what are the proportions of male/female students
 ```{r f, echo =TRUE}
 freshmen <- subset(dsgn, year == 1)
 f_male <- svyciprop(~I(gender == 1), freshmen, method = "logit")
-f_female <- svyciprop(~I(gender == 2), freshmen, method = "logit")
+f_female <- svyciprop(~I(gender == 2), freshmen, method = "mean")
 f_male
 f_female
 ```
@@ -70,8 +75,8 @@ f_female
 (g) Repeat (f), but for seniors
 ```{r g, echo = TRUE}
 seniors <- subset(dsgn, year == 4)
-g_male <- svyciprop(~I(gender == 1), seniors, method = "logit")
-g_female <- svyciprop(~I(gender == 2), seniors, method = "logit")
+g_male <- svyciprop(~I(gender == 1), seniors, method = "mean")
+g_female <- svyciprop(~I(gender == 2), seniors, method = "mean")
 g_male
 g_female
 ```
