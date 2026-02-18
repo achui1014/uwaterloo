@@ -1,0 +1,117 @@
+---
+title: "STAT332: Assignment 2 Question 5"
+author: "Ashley Chui (21003047)"
+output: pdf_document
+---
+
+\textbf{5.} Using the survey package with weight variable finalwt and properly accounting that SYC used a stratified sampling design,
+give a point estimate and corresponding 95\% CI for each of the following:
+
+```{r loading_data}
+library("survey")
+syc <- read.table("syc.txt", header = TRUE, sep = ",")
+
+# Handle missing codes
+syc$age[syc$age == 99] <- NA
+syc$race[syc$race == 9] <- NA
+syc$numarr[syc$numarr == 99] <- NA
+syc$prviol[syc$prviol == 9] <- NA
+syc$everdrug[syc$everdrug == 9] <- NA
+
+# Survey design object
+syc_des <- svydesign(
+    ids = ~1, 
+    strata = ~stratum,
+    weights = ~finalwt,
+    data = syc
+)
+df0 <- degf(syc_des)
+```
+
+(a) Estimate the average age of juveniles/young adults in custody.
+```{r a, echo = TRUE}
+a <- svymean(~age, syc_des, na.rm = TRUE)
+confint(a, df = df0)
+a
+```
+The point estimate for the average age of all juveniles/young adults in custody is 16.639 with a 95\% confidence interval $[16.5754, 16.7032]$.
+
+(b) Estimate the mean number of prior arrests.
+```{r b, echo = TRUE}
+b <- svymean(~numarr, syc_des, na.rm = TRUE)
+confint(b, df = df0)
+b
+```
+The point estimate for the mean number of prior arrests is 8.930 with a 95\% confidence interval $[8.4181, 9.4414]$.
+
+(c) Estimate the proportion of juveniles/young adults in custody that have used illegal drugs.
+```{r c, echo = TRUE}
+c <- svymean(~as.factor(everdrug), syc_des, na.rm =TRUE)
+confint(c, df = df0)
+c
+```
+The point estimate for the proportion of juveniles/young adults in custody that have used illegal drugs is 82.821\% with a 95\% confidence interval $[81.1052, 84.5370]$.\\
+
+(d) Estimate the proportion of juveniles/young adults in custody that were previously arrested for a violent crime
+```{r d, echo = TRUE}
+d <- svymean(~prviol, syc_des, na.rm = TRUE)
+confint(d, df = df0)
+d
+```
+The estimated proportion of juveniles/young adults in custody that were previously arrested for a violent crime is 35.459\%. The 95% confidence interval for 
+the proportion is $[33.3835\%, 37.5345\%]$.
+
+(e) Estimate the proportion of juveniles/young adults in custody that have used illegal drugs and were previously arrested for a violent crime.
+```{r e, echo = TRUE}
+# create joint indicator variable
+syc$vio_and_drug <- ifelse(syc$everdrug == 1 & syc$prviol == 1, 1, 0)
+syc_des <- svydesign( # redefine design object
+    ids = ~1, 
+    strata = ~stratum,
+    weights = ~finalwt,
+    data = syc
+)
+e <- svymean(~vio_and_drug, syc_des, na.rm = TRUE)
+confint(e, df = df0)
+e
+```
+The estimated proportion of juveniles/young adults in custody that have used illegal drugs and were previously arrested for a violent crime is $31.389\%$ with
+95\% confidence interval $[29.3927, 33.3851]$.\\
+
+(f) Estimate the proportion of males amongst juveniles/young adults in custody.
+```{r f, echo =TRUE}
+f <- svymean(~factor(sex), syc_des, na.rm = TRUE)
+confint(f, df = df0)
+f
+```
+The estimated proportion of males amongst juveniles/young adults in custody is $93.119\%$ with 95\% confidence interval $[92.0510, 94.1876]$.\\
+
+(g) Estimate the proportion of African Americans amongst juveniles/young adults in custody.
+```{r g, echo = TRUE}
+g <- svymean(~factor(race), syc_des, na.rm = TRUE)
+confint(g, df = df0)
+g
+```
+The estimated proportion of African Americans amongst juveniles/young adults in custody is $41.5303\%$ with 95\% confidence interval $[39.3550, 43.7055]$.\\
+
+(h) Estimate the proportion of African American males amongst juveniles/young adults in custody.
+```{r h, echo = TRUE}
+syc$black_male <- ifelse(syc$race == 2 & syc$sex == 1, 1, 0)
+syc_des <- svydesign( # redefine design object
+    ids = ~1, 
+    strata = ~stratum,
+    weights = ~finalwt,
+    data = syc
+)
+h <- svymean(~black_male, syc_des, na.rm = TRUE)
+confint(h, df = df0)
+h
+```
+The estimated proportion of African American males amongst juveniles/young adults in custody is $39.765\%$ with 95\% confidence interval $[37.6058, 41.9252]$.\
+
+(i) From census data, we know that African-American males are about 7.6\% of the youth population
+in the U.S. Using your answer to part (h), what can you conclude about racial bias when it comes to
+youth in custody?
+
+African-American males are overrepresented in youth custody by roughly 5 times their share of the general youth population.
+This suggests substantial racial disparities and perhaps systemic bias in the youth justice system.
