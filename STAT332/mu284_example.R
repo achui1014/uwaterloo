@@ -1,4 +1,4 @@
-mu284.dat <- read.table("/Users/ashleychui/Desktop/Winter '26/stat332/mu284.dat", header = T)
+mu284.dat <- read.table("mu284.dat", header = T)
 head(mu284.dat) # view top rows to visually assess that the data was correctly read
 dim(mu284.dat) # ensure the correct number of rows and columns
 
