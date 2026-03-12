@@ -90,3 +90,47 @@ create_least_squares_grad <- function(x,y) {
   }
 }
 gradient <- create_least_squares_grad(waldo$X, waldo$Y)
+
+
+# Newton-Rapshon Algorithm
+NewtonRaphson <- function(theta, psiFn, psiPrimeFn, dim,
+                          testConvergenceFn = testConvergence,
+                          maxIterations = 100, tolerance = 1E-6,
+                          relative = FALSE) {
+  if (missing(theta)) {
+    # figure out the dimensionality
+    if (missing(dim)) {dim <- length(psiFn())}
+    theta <- rep(0, dim)
+
+  }
+  converged <- FALSE
+  i <- 0
+  while (!converged & i <= maxIterations) {
+    thetaNew <- theta - solve(psiPrimeFn(theta), psiFn(theta))
+    converged <- testConvergenceFn(thetaNew, theta, tolerance = tolerance,
+                                   relative = relative)
+    theta <- thetaNew
+    i <- i + 1
+  }
+  # Return last value and whether converged or not
+  list(theta = theta, converged = converged, iteration = i, fnValue = psiFn(theta))
+}
+
+# Example (Rosenbrock Function)
+psiPrime <- function(theta = c(0, 0)) {
+  val <- matrix(0, nrow = length(theta), ncol = length(theta))
+  val[1,1] <- 1200 * theta[1]^2 - 400 * theta[2] + 2
+  val[1,2] <- -400 * theta[1]
+  val[2,1] <- -400 * theta[1]
+  val[2,2] <- 200
+  return(val)
+}
+
+g <- function(theta) {
+    c(
+      400 * theta[1]^3 - 400 * theta[1] * theta[2] + 2 * theta[1] - 2,
+      -200 * theta[1] + 200 * theta[2]
+    )
+}
+NRresult <- NewtonRaphson(theta = c(0,0), psiFn = g, psiPrimeFn = psiPrime)
+print(NRresult)
