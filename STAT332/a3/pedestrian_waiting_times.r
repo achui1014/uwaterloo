@@ -19,28 +19,75 @@ push_dat$pushes <- as.factor(push_dat$pushes)
 boxplot(waiting_time ~ pushes, data = push_dat)
 anova(lm(waiting_time ~ pushes, data = push_dat))
 
-# part c: mean waiting times + 95% CI
+# part c: mean waiting times for one push and three pushes + 95% CI (Bonferroni)
 # ------------------------------------------------------------------------------
-wait_times_aov <- aov(waiting_time ~ pushes, data = push_dat)
-tmp <- model.tables(wait_times_aov, type = "means")
-pushes_tab <- data.frame(names(tmp$tables[[2]]), c(tmp$tables[[2]]), tmp$n[[1]])
-colnames(pushes_tab) <- c(names(tmp$tables[2]), "means", "ni")
-rownames(pushes_tab) <- NULL
+aov_tab <- anova(lm(waiting_time ~ pushes, data = push_dat))
 
-pushes_tab$var <- sum(wait_times_aov$res^2) /
-  wait_times_aov$df.residual * 1 / pushes_tab$ni
-pushes_tab$sd <- sqrt(pushes_tab$var)
+mse <- aov_tab["Residuals", "Mean Sq"]
+df <- aov_tab["Residuals", "Df"]
 
-pushes_tab$lower95 <- pushes_tab$means -
-  qt(0.975, wait_times_aov$df.residual) * pushes_tab$sd
-pushes_tab$upper95 <- pushes_tab$means +
-  qt(0.975, wait_times_aov$df.residual) * pushes_tab$sd
+means <- tapply(push_dat$waiting_time, push_dat$pushes, mean)
+ns <- tapply(push_dat$waiting_time, push_dat$pushes, length)
 
-###
-model <- aov(waiting_time ~ pushes, data = push_dat)
-summary(model)
+# Bonferonni critical value
+alpha <- 0.05
+g <- 2
+tcrit <- qt(1 - alpha / (2 * g), df = df)
 
-mse <- summary(model)[[1]]["Residuals", "Mean Sq"]
-df <- summary(model)[[1]]["Residuals", "Df"]
+# one push
+se_one <- sqrt(mse / ns["1"])
+ci_one <- means["1"] + c(-1, 1) * tcrit * se_one
 
-means <- sapply(push_dat$waiting_time, mean)
+# three pushes
+se_three <- sqrt(mse / ns["3"])
+ci_three <- means["3"] + c(-1, 1) * tcrit * se_three
+
+results <- data.frame(
+  pushes = c(1, 3),
+  mean = means
+[c("1", "3")],
+lower = c(ci_one[1], ci_three[1]),
+upper = c(ci_one[2], ci_three[2])
+)
+
+# part d: Compute all pairwise comparisons + 95% CI (Tukey)
+# ------------------------------------------------------------------------------
+fit <- aov(waiting_time ~ pushes, data = push_dat)
+TukeyHSD(fit)
+
+# part e: Estimate contrast + 95% CI
+# i: contrast the effect of no pushes vs. pushing the button once or more
+# ------------------------------------------------------------------------------
+c_hat <- means["0"] - (means["1"] + means["2"] + means["3"]) / 3
+
+# calculate se(\hat{C})
+cvec <- c(1, -1/3, -1/3, -1/3)
+names(cvec) <- c("0", "1", "2", "3")
+
+se <- sqrt(mse * sum(cvec^2 / ns[names(cvec)]))
+
+tcrit <- qt(0.975, df)
+ci <- c_hat + c(-1, 1) * tcrit * se
+
+# part f: Test for linear trend in number of pushes
+# ------------------------------------------------------------------------------
+# linear trend contrast for a decreasing trend
+cvec <- c("0" = 3, "1" = 1, "2" = -1, "3" = -3)
+c_hat <- sum(cvec * means)
+se <- sqrt(mse * sum(cvec^2 / ns[names(cvec)]))
+
+ci <- c_hat + c(-1, 1) * tcrit * se
+
+# part g: diagnostics
+# ------------------------------------------------------------------------------
+# check noramlity of error using qqplot of the residuals
+plot(fit, which = 2)
+
+# check zero expectation using plot of residuals vs. fitted values
+plot(fit, which = 1)
+
+# checking equality of variance using boxplot of residuals
+boxplot(residuals(fit) ~ push_dat$pushes,
+  xlab = "number of pushes",
+  ylab = "residuals",
+  main = "Residuals by Number of Pushes")
