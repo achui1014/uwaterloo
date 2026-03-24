@@ -12,3 +12,13 @@ frog_jumps <- data.frame(
 )
 frog_jumps$dimension <- as.factor(frog_jumps$dimension)
 
+# part a: ANOVA table
+# ------------------------------------------------------------------------------
+boxplot(distance ~ dimension, data = frog_jumps)
+aov_tab <- anova(lm(distance ~ dimension, data = frog_jumps))
+aov_tab
+
+# part c: pairwise comparisons (Tukey's method)
+# ------------------------------------------------------------------------------
+fit <- aov(lm(distance ~ dimension, data = frog_jumps))
+TukeyHSD(fit)
