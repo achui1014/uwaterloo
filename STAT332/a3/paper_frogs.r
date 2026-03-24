@@ -22,3 +22,42 @@ aov_tab
 # ------------------------------------------------------------------------------
 fit <- aov(lm(distance ~ dimension, data = frog_jumps))
 TukeyHSD(fit)
+
+# part e: linearity contrast
+# ------------------------------------------------------------------------------
+means <- tapply(frog_jumps$distance, frog_jumps$dimension, mean)
+ns <- tapply(frog_jumps$distance, frog_jumps$dimension, length)
+mse <- aov_tab["Residuals", "Mean Sq"]
+df <- aov_tab["Residuals", "Df"]
+
+c_hat <- means["20"] - means["10"]
+
+# calculate se(\hat{C})
+cvec <- c(-1, 0, 1)
+names(cvec) <- c("10", "15", "20")
+
+se <- sqrt(mse * sum(cvec^2 / ns[names(cvec)]))
+
+tcrit <- qt(0.975, df)
+ci <- c_hat + c(-1, 1) * tcrit * se
+
+# part f: diagnostics
+# ------------------------------------------------------------------------------
+png("qqplot.png", width = 500, height = 400)
+# check noramlity of error using qqplot of the residuals
+plot(fit, which = 2)
+dev.off()
+
+# check zero expectation using plot of residuals vs. fitted values
+png("fitted_residuals.png", width = 500, height = 400)
+plot(fit, which = 1)
+dev.off()
+
+# checking equality of variance using boxplot of residuals
+png("boxplot.png", width = 500, height = 400)
+
+boxplot(residuals(fit) ~ frog_jumps$dimension,
+  xlab = "Dimension",
+  ylab = "Residuals",
+  main = "Residuals by Dimension")
+dev.off()
