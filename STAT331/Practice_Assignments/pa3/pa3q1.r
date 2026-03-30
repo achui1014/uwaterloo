@@ -1,5 +1,5 @@
 # practice assignment 3
-hp <- read.table("hp.txt", header = TRUE) # house price data
+hp <- read.table("data/hp.txt", header = TRUE) # house price data
 
 # a) Fit the linear regression model:
 # Price = B_0 + B_1(Size) + B_2(Beds) + B_3(Baths) + B_4(New) + B_5(Taxes) # nolint
