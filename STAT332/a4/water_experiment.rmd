@@ -1,0 +1,97 @@
+---
+title: "STAT332: Assignment 2 Question 5"
+author: "Ashley Chui (21003047)"
+output: pdf_document
+---
+
+\textbf{2.} I made a small experiment to see how long it takes to boil (in minutes) a given amount of water on the four
+different burners of my stove (1 = right-back, 2 = right-front, 3 = left-back, 4 = left-front). Since salt affects the
+boiling point of water, I ran the experiment with 0, 2, 4 and 6 teaspoons of salt added to the water. Hence, my experiment
+two factors (4 levels each). In addition, I repeated the experiment 3 times for each of the 16 burner/salt combinations;
+yielding a total of 48 observations.
+
+(a) Produce the ANOVA table.
+```{r}
+water <- read.table("data/water.txt", header = FALSE)
+colnames(water) <- c("burner", "salt", "time")
+water$burner <- as.factor(water$burner)
+water$salt <- as.factor(water$salt)
+
+
+water.aov <- aov(time ~ burner * salt, data = water)
+aov_tab <- summary(water.aov)
+aov_tab
+```
+
+(b) Perform the usual F tests in a two-way ANOVA. What are your conclusions on the effects of salt,
+burner and their interaction?
+Based on the ANOVA table, we can assess the p-value of each predictor as well as their interaction. If p-value > 0.05,
+then we can reject the null hypothesis that the predictor is insignificant.
+
+Since the p-value for burner is much smaller than 0.05, we conclude that there is very strong evidence that there
+is a significant effect on boiling time. More formally, we reject the null hypothesis that burner is an insignificant
+predictor.
+
+The p-value for salt is smaller than 0.05, so we conclude that there is strong evidence that salt has a signifcant
+effect on boiling time. Formally, we reject the null hypothesis that salt is an insignificant predictor.
+
+Contrarily, the p-value for the interaction between salt and burner is much greater than 0.05, so we conclude that there
+is very strong evidence that the effect of salt does not depend on the burner. We say that there is no interaction between
+the burner used and the amount of salt added to the water, hence the effect of salt is consistent across all burners.
+
+(c) Using pairwise comparisons, which burner or burners is/are the fastest at boiling water? (Make sure that you clearly
+justify why only this/those burner(s) is/are faster than the others)
+```{r}
+TukeyHSD(water.aov, "burner", conf.level = 0.95)
+```
+When analyzing these pairwise results, we see that there is a negative difference between burner 1 and 2, where burner 2 is faster
+than burner 1 by 2.5 minutes. Furthermore, burner 2 is faster than burner 3 and burner 4 so we conclude that burner is the fastest
+at boiling water. It has the smallest mean boiling time and is significiantly faster than all other burners based on Tukey pairwise comparisons.
+
+(d) Use a contrast to test (at the 5% level) if the two right burners take the same time to boil water
+than the left ones. No need to make multiple comparison adjustment.
+
+We want to test the null hypothesis that $(\mu_1 + \mu_2) - (\mu_3 + \mu_4) = 0$.
+```{r}
+means <- tapply(water$time, water$burner, mean)
+means
+
+contrast <- (means[1] + means[2]) - (means[3] + means[4])
+contrast
+
+MSE <- aov_tab[[1]]["Residuals", "Mean Sq"]
+df <- aov_tab[[1]]["Residuals", "Df"]
+
+n <- 12
+SE <- sqrt(MSE * (1/n + 1/n + 1/n + 1/n))
+
+t <- contrast / SE
+t
+
+2 * pt(-abs(t), df) # p-value
+```
+Since the p-value is much less than 0.05, we conclude that there is a statistically significant 
+difference between the average boiling times of the right burners (1 and 2) and the left burners (3 and 4).
+At the 5% significance level, we reject the null hypothesis that the right and left burners have the same
+aeverage boiling time.
+
+Additionally, since the estimated contrast between the right burners and the left burners is negative, we also
+conclude that the right burners have lower boiling times than the left burners.
+
+(e) Use a contrast to test (at the 5% level) the hypothesis that there is a lienar trend in the time to boil water
+due to the level of salt. No need to make multiple comparison adjustment.
+We will test the null hypothesis that there is no linear trend (i.e. $H_0: -3\mu_1 -\mu_2 + \mu_3 + 3\mu_4 = 0$ )
+```{r}
+salt_means <- tapply(water$time, water$salt, mean)
+salt_means
+
+lin_contrast <- (-3 * salt_means[1]) + (-1 * salt_means[2]) 
+                + (1 * salt_means[3]) + (3 * salt_means[4])
+salt_SE <- sqrt(MSE * ((-3)^2 + (-1)^2 + 1^2 + 3^2) / 12)
+t <- lin_contrast / SE
+t
+2 * pt(-abs(t), df)
+```
+At the 5% significance level, we reject the null hyptohesis of no linear trend in boiling time across salt levels.
+There is very strong evidence of a linear relationship between salt and boiling time. Furthermore, the negative test statistic indicates
+boiling time decreases as the amount of salt increases.
