@@ -1,0 +1,140 @@
+---
+title: "STAT332: Assignment 4 Question 5"
+author: "Ashley Chui (21003047)"
+output: pdf_document
+---
+
+This question is a follow up to Q4 of assignment #3, and is thus also concerned with making paper frogs.
+My daughter and I did a more thorough experiment, and investigated both the effects for dimensions
+(i.e. 10cm x 10cm vs. 15cm x 15cm vs. 20cm x 20cm) and colour (i.e. gray vs. orchid) on the jumping distance
+of paper frogs. After making the 6 paper frogs (3 dimensions x 2 colours) and practicing a few times, we
+individually launch each frog 5 times; for a grand total of 60 jumps.
+
+```{r}
+library(readxl)
+frog_dat <- read_excel("data/frogs.xlsx")
+frog_dat <- as.data.frame(frog_dat)
+frog_dat$dimensions <- as.factor(frog_dat$dimensions)
+frog_dat$colour <- as.factor(frog_dat$colour)
+```
+(i) produce the two-way ANOVA table, and perform the usual F tests. What are your conclusions
+on the effects of paper dimensions, colour and their interaction?
+```{r}
+fit <- aov(jump ~ dimensions * colour, data = frog_dat)
+summary(fit)
+```
+Given that the p-value of paper dimension is much smaller than 0.05, we reject the null hypothesis.
+We conclude that there is very strong evidence that effect of paper dimension is highly significant
+in the jump distance.
+
+The p-value for paper colour is greater than 0.05 so we fail to reject the null hypothesis.
+We conclude that there is strong evidence that the effect of paper colour does not have a statistically
+significant effect on jump distance.
+
+The p-value for the interaction between dimension and colour is much greater than 0.05 so we fail to reject 
+the null hypothesis. We conclude that there is very strong evidence that the effect of dimensions is consistent
+across both colours. More simply, colour does not change how size affects jumping.
+
+(ii) Compute all relevant pairwise comparisons, using Tukey's method, and obtain their CI's with
+a family level of 95%.
+```{r}
+TukeyHSD(fit, "dimensions", conf.level = 0.95)
+```
+The CI for the comparison between (15x15 cm) and (10x10 cm) is [-79.51, -43.70]. This CI does not
+include 0 and has a p-value < 0.001 so we can say that 15x15 frogs jump significantly farther than
+10x10 frogs.
+
+The CI for (20x20 cm) and (10x10 cm) is [-100.41, -64.61]. This CI does not include 0 and has p-value < 0.001
+so we can sat that the 20x20 frogs jump significantly farther than 10x10 frogs.
+
+Finally, the CI for the comparison between (20x20 cm) and (15x15 cm) is [-38.81, -3.00]. This CI does not include
+0 and has p-value 0.018 < 0.05 so we can say that there is statstical evidence that 20x20 frogs jump farther than
+15x15 frogs.
+
+(iii) Using part a.ii, determine which one (or ones) of groups jumps the furthest?
+From the comparisons, 20x20 > 15x15 > 10x10 with significant differences between each group.
+The 20x20 cm paper frogs jump the furthest on average, and all three sizes differ significantly
+from each other.
+
+(b) Expand on the two-way ANOVA model fitted in part a by including person as a blocking factor.
+In other words, fit a two-way ANOVA model with dimensions and colour as factors, and person as a
+blocking factor.
+
+(i) Produce the two-way ANOVA table, and perform the usual F tests. What are your conclusions on
+the effects of paper dimensions, colour, and their interaction? Are they the same as in a.i?
+```{r}
+block_fit <- aov(jump ~ dimensions * colour + person, data = frog_dat)
+summary(block_fit)
+```
+The p-value for dimensions is < 0.05 and is still highly significant just as in part a. However,
+we note that the F-value is increased from 66.7 to 76.9 which implies even stronger evidence after blocking.
+
+The p-value for colour is > 0.05 so we conclude that there is no evidence that colour affects jump distance
+as in part a.
+
+The p-value for person is < 0.05, so we reject the null hypothesis and conclude that there is strong evidence that
+the person launching the frog affects jump distance. This could explain the variation unexplained by the model in part a.
+
+Lastly, the p-value for interaction between dimension and colour remains insignificant with p-value > 0.05. We thus fail to
+reject the null hypothesis and conclude that the interaction is highly insignificant.
+
+(ii) In section 9.6 of the slides, I mentioned that estimating and comparing the blocks is usually not of interest.
+Though this is true, for this particular problem, my daughter nevertheless wants to know if she is better than I am at 
+making the paper frogs jump further. Compute a 95% CI to test this.
+
+Since person has 2 levels, the comparison is just the difference in mean jump distance between the daughter and you,
+adjusted for dimensions and colour.
+```{r}
+fit2 <- lm(jump ~ dimensions * colour + person, data = frog_dat)
+summary(fit2)
+confint(fit2, "personDaughter", level = 0.95)
+```
+Since the interval is positive and hence does not include 0, we conclude that the daughter's frogs jump
+significantly further than yours. Thus, the daughter is better at making the paper frogs jump farther.
+
+(iii) Repeat a.ii and a.iii using the two-way ANOVA model with blocking. Do you reach the same 
+conclusion about which one (or ones) of groups jumps the furthest?
+```{r}
+TukeyHSD(block_fit, "dimensions", conf.level = 0.95)
+```
+Since the width of each interval changes by 1-2 cm, we can say that the same conclusion applies to the two-way
+ANOVA model with blocking. Therefore, we conclude that there is statistically significant differences between each group
+of paper dimensions such that (20x20) > (15x15) > (10x10) just as in part a.
+
+(iv) Check the assumptions of the ANOVA model, and look for possible outliers. IN particular, test the
+normality assumption, 0 expectation of errors and equality of variance.
+```{r}
+# qq-plot of the residuals to check Normality assumption
+plot(block_fit, which = 2)
+```
+This qq-plot shows that while the residuals are approximately normal in the center, there are noticeable deviations
+in the tails. This suggests mild departure from the normality assumption.
+
+```{r}
+# plot of residuals vs. fitted values to check zero expectation assumption as
+# well as equality of variance assumption
+plot(block_fit, which = 1)
+```
+The residuals appear to be centered around zero, so the zero expectation assumption is satisfied.
+However, there is a slight funnel shape appearant which causes the residuals to increase with the fitted value.
+Thus, we cannot conclude that the constant variance assumption is satisfied.
+
+```{r}
+# check for the presence of outliers
+frog.res <- data.frame(res = residuals(block_fit), fitted = fitted(block_fit))
+
+mse <- sum(residuals(block_fit)^2) / block_fit$df
+
+tmp <- qnorm(1 - 0.05/(2 * 60), sd = sqrt(mse * (1 - 1/2)))
+plot(res ~ fitted, data = frog.res,
+    xlab = "Fitted values",
+    ylab = "Residuals",
+    ylim = c(-tmp, tmp))
+
+abline(h = 0, col = 2)
+abline(h = tmp, lty = 2)
+abline(h = -tmp, lty = 2)
+```
+Based on this plot, there is at least one potential outlier, as one residual falls outside the
+adjusted limits. However, most observations lie within the acceptable range, so the majority of the data
+appear consistent with the model.
