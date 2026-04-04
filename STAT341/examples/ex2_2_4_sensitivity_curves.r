@@ -35,3 +35,46 @@ sdn <- function(y_pop) {
   sqrt(var(y_pop) * (N - 1) / N)
 }
 plot_sc(y.pop, attr = sdn, nam = "Standard Deviation")
+
+# b) IQR
+iqr <- function(y_pop) {
+  quantile(y_pop, probs = 0.75) - quantile(y_pop, probs = 0.25)
+}
+plot_sc(y.pop, attr = iqr, nam = "Interquartile Range")
+
+# c) Pearson's second skewness coefficient (median skewness)
+pearson_skew <- function(y_pop) {
+  y_bar <- mean(y_pop)
+  med <- quantile(y_pop, probs = 0.5)
+  y_sd <- sd(y_pop)
+  3 * (y_bar - med) / y_sd
+}
+plot_sc(y.pop, attr = pearson_skew, nam = "Median Skewness")
+
+# 2.2.5 Geometric Mean
+# returns.txt: monthly returns of an investment over a period of 20 years.
+# Plot the influence for each unit for the geometric mean along with the
+# histogram of the data (use FD rule).
+returns <- read.table("data/returns.txt", header = FALSE)
+returns <- returns [, 1]
+
+N <- length(returns)
+inf <- (prod(returns))^(1 / N) - (prod(returns) / returns)^(1/(N - 1))
+plot(inf, main= "Influence (Geometric Average)",
+    ylab = "Influence")
+
+hist(returns, main = "Monthly Returns on Investment",
+  xlab = "Return Value", breaks = "FD")
+
+# We see that there are two influential units relative to the others
+# (influence below - 0.003)
+influential_i <- which(inf < -0.003)
+returns[influential_i]
+sort(returns)[1:5]
+# we see that these two influential observations are the smallest values of
+# reutrns, which is consistent with the trend observed in the sensitivity curve
+# (i.e. the closer the variate is to 0, the more influential it is)
+geo_mean <- function(x) {
+  (prod(x))^(1 / length(x))
+}
+plot_sc(returns, attr = geo_mean, "Geometric Mean")
