@@ -39,6 +39,7 @@ plot(delta[,2], ylab=bquote(Delta[beta]),
 # Influence on the regression line as a whole (theta)
 par(mfrow = c(1, 2))
 delta2 <- apply(X = delta, MARGIN = 1, FUN = function(z) {sqrt(sum(z^2))})
+
 hist(delta2, breaks = "FD", main = bquote("Influence on" ~ theta),
     xlab = bquote(Delta), col = adjustcolor("grey", 0.6))
 
