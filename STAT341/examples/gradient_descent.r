@@ -68,3 +68,19 @@ createLSGradient <- function(x, y) {
         )
     }
 }
+
+
+# feh linear regression
+feh <- read.csv("data/feh.csv", header = TRUE)
+fit <- lm(DEF ~ RES, data = feh)
+rho <- createLSrho(feh$RES, feh$DEF)
+gradient <- createLSGradient(feh$RES, feh$DEF)
+
+# produces the same coefficients as fit: lm(...)
+result <- gradient_descent(
+    theta = c(0, 0),
+    rhoFn = rho,
+    gradientFn = gradient,
+    linesearchFn = linesearchFn,
+    testconvFn = testconvFn
+)
